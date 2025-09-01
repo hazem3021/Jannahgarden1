@@ -1,0 +1,45 @@
+name: Build Flutter APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "jannah_garden_github_ready.zip"
+      - ".github/workflows/flutter-android.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          sudo apt-get update && sudo apt-get install -y unzip
+          unzip -o jannah_garden_github_ready.zip
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+
+      - name: Flutter pub get
+        working-directory: jannah_garden
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: jannah_garden
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: jannah_garden/build/app/outputs/flutter-apk/app-release.apk
